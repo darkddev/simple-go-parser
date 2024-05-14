@@ -37,6 +37,8 @@ func Walmart_ParseHtml(filename string) bool {
 		result = Walmart_ProductPageScraper(json)
 	} else if Walmart_IsReviewPage(json) {
 		result = Walmart_ReviewPageScraper(json)
+	} else if Walmart_IsCategoryPage(json) {
+		result = Walmart_CategoryPageScraper(json)
 	} else {
 		println("Not found")
 		return false
@@ -78,6 +80,8 @@ func Walmart_PostRequest(c *gin.Context) {
 		result = Walmart_ProductPageScraper(json)
 	} else if Walmart_IsReviewPage(json) {
 		result = Walmart_ReviewPageScraper(json)
+	} else if Walmart_IsCategoryPage(json) {
+		result = Walmart_CategoryPageScraper(json)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported page"})
 		return
