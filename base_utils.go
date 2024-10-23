@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -113,9 +114,22 @@ func convertTableToMap(s *goquery.Selection) map[string]string {
 	return dataMap
 }
 
+func customMarshal(v interface{}) ([]byte, error) {
+	var buf []byte
+	buf, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	// Replace \u0026 with &
+	buf = bytes.Replace(buf, []byte("\\u0026"), []byte("&"), -1)
+	buf = bytes.Replace(buf, []byte("\\u003c"), []byte("<"), -1)
+	buf = bytes.Replace(buf, []byte("\\u003e"), []byte(">"), -1)
+	return buf, nil
+}
+
 func saveJsonFile(result interface{}, filename string) bool {
 	// Marshal the struct into JSON
-	jsonData, err := json.MarshalIndent(result, "", "\t")
+	jsonData, err := customMarshal(result)
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return false

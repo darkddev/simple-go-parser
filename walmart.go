@@ -32,13 +32,17 @@ func Walmart_ParseHtml(filename string) bool {
 	}
 	var result interface{}
 	if Walmart_IsSearchPage(json) {
-		result = Walmart_SearchPageScraper(json)
+		result = Walmart_BrowsePageScraper(json)
 	} else if Walmart_IsProductPage(json) {
 		result = Walmart_ProductPageScraper(json)
 	} else if Walmart_IsReviewPage(json) {
 		result = Walmart_ReviewPageScraper(json)
 	} else if Walmart_IsCategoryPage(json) {
 		result = Walmart_CategoryPageScraper(json)
+	} else if Walmart_IsBrowsePage(json) {
+		result = Walmart_BrowsePageScraper(json)
+	} else if Walmart_IsShopPage(json) {
+		result = Walmart_ShopPageScraper(json)
 	} else {
 		println("Not found")
 		return false
@@ -75,13 +79,17 @@ func Walmart_PostRequest(c *gin.Context) {
 	}
 	var result interface{}
 	if Walmart_IsSearchPage(json) {
-		result = Walmart_SearchPageScraper(json)
+		result = Walmart_BrowsePageScraper(json)
 	} else if Walmart_IsProductPage(json) {
 		result = Walmart_ProductPageScraper(json)
 	} else if Walmart_IsReviewPage(json) {
 		result = Walmart_ReviewPageScraper(json)
 	} else if Walmart_IsCategoryPage(json) {
 		result = Walmart_CategoryPageScraper(json)
+	} else if Walmart_IsBrowsePage(json) {
+		result = Walmart_BrowsePageScraper(json)
+	} else if Walmart_IsShopPage(json) {
+		result = Walmart_ShopPageScraper(json)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported page"})
 		return

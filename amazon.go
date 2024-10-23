@@ -10,7 +10,6 @@ import (
 )
 
 func Amazon_ParseHtml(filename string) bool {
-	println("### ", filename)
 	content, err := os.ReadFile("./data/" + filename + ".html")
 	if err != nil {
 		println(err)

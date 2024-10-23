@@ -9,19 +9,15 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type WalmartSearchRawItem struct {
-	TypeName                  string `json:"__typename"`
-	Type                      string `json:"type"`
-	Id                        string `json:"id,omitempty"`
-	UsItemId                  string `json:"usItemId,omitempty"`
-	Name                      string `json:"name,omitempty"`
-	CheckStoreAvailabilityATC bool   `json:"checkStoreAvailabilityATC,omitempty"`
-	SeeShippingEligibility    bool   `json:"seeShippingEligibility,omitempty"`
-	Brand                     string `json:"brand,omitempty"`
-	ShortDescription          string `json:"shortDescription,omitempty"`
-	WeightIncrement           int    `json:"weightIncrement,omitempty"`
-	ImageInfo                 struct {
-		Id           string `json:"id"`
+type WsrSearchtem struct {
+	TypeName         string `json:"__typename"`
+	Type             string `json:"type"`
+	Id               string `json:"id,omitempty"`
+	ItemId           string `json:"usItemId,omitempty"`
+	Name             string `json:"name,omitempty"`
+	Brand            string `json:"brand,omitempty"`
+	ShortDescription string `json:"shortDescription,omitempty"`
+	ImageInfo        struct {
 		ThumbnailUrl string `json:"thumbnailUrl"`
 		Size         string `json:"size"`
 	} `json:"imageInfo,omitempty"`
@@ -38,39 +34,39 @@ type WalmartSearchRawItem struct {
 			Type string `json:"type"`
 		} `json:"tags"`
 		Groups []struct {
-			Name    string        `json:"name"`
-			Members []interface{} `json:"members"`
+			Name    string `json:"name"`
+			Members []struct {
+				Text    string `json:"text"`
+				SlaText string `json:"slaText"`
+				Type    string `json:"memberType"`
+				Key     string `json:"key"`
+			} `json:"members"`
 		} `json:"groups"`
 	} `json:"badges,omitempty"`
-	SnapEligible       bool    `json:"snapEligible,omitempty"`
-	BuyNowEligible     bool    `json:"buyNowEligible,omitempty"`
-	ClassType          string  `json:"classType,omitempty"`
-	AverageRating      float64 `json:"averageRating,omitempty"`
-	NumberOfReviews    int     `json:"numberOfReviews,omitempty"`
-	SalesUnitType      string  `json:"salesUnitType,omitempty"`
-	SellerName         string  `json:"sellerName,omitempty"`
-	AvailabilityStatus struct {
-		Display string `json:"display"`
-		Value   string `json:"value"`
-	} `json:"availabilityStatusV2,omitempty"`
-	PriceInfo struct {
-		ItemPrice        string `json:"itemPrice"`
-		LinePrice        string `json:"linePrice"`
-		UnitPrice        string `json:"unitPrice"`
-		WasPrice         string `json:"wasPrice"`
-		ShipPrice        string `json:"shipPrice"`
-		PriceRangeString string `json:"priceRangeString"`
+	SnapEligible    bool    `json:"snapEligible,omitempty"`
+	BuyNowEligible  bool    `json:"buyNowEligible,omitempty"`
+	AverageRating   float64 `json:"averageRating,omitempty"`
+	NumberOfReviews int     `json:"numberOfReviews,omitempty"`
+	SalesUnitType   string  `json:"salesUnitType,omitempty"`
+	SellerName      string  `json:"sellerName,omitempty"`
+	PriceInfo       struct {
+		ItemPrice  string `json:"itemPrice"`
+		LinePrice  string `json:"linePrice"`
+		UnitPrice  string `json:"unitPrice"`
+		WasPrice   string `json:"wasPrice"`
+		ShipPrice  string `json:"shipPrice"`
+		Savings    string `json:"savings"`
+		PriceRange string `json:"priceRangeString"`
 	} `json:"priceInfo,omitempty"`
-	FulfillmentType                string `json:"fulfillmentType,omitempty"`
-	ManufacturerName               string `json:"manufacturerName,omitempty"`
-	ShowAtc                        bool   `json:"showAtc,omitempty"`
-	ShowOptions                    bool   `json:"showOptions,omitempty"`
-	ShowBuyNow                     bool   `json:"showBuyNow,omitempty"`
-	AvailabilityStatusDisplayValue string `json:"availabilityStatusDisplayValue,omitempty"`
-	ProductLocationDisplayValue    string `json:"productLocationDisplayValue,omitempty"`
-	CanAddToCart                   bool   `json:"canAddToCart,omitempty"`
-	Flag                           string `json:"flag,omitempty"`
-	Badge                          struct {
+	ManufacturerName   string `json:"manufacturerName,omitempty"`
+	ShowAtc            bool   `json:"showAtc,omitempty"`
+	ShowOptions        bool   `json:"showOptions,omitempty"`
+	ShowBuyNow         bool   `json:"showBuyNow,omitempty"`
+	AvailabilityStatus string `json:"availabilityStatusDisplayValue,omitempty"`
+	ProductLocation    string `json:"productLocationDisplayValue,omitempty"`
+	CanAddToCart       bool   `json:"canAddToCart,omitempty"`
+	Flag               string `json:"flag,omitempty"`
+	Badge              struct {
 		Key  string `json:"key"`
 		Text string `json:"text"`
 		Type string `json:"type"`
@@ -89,10 +85,14 @@ type WalmartSearchRawItem struct {
 		AverageRating   float64 `json:"averageRating"`
 		NumberOfReviews int     `json:"numberOfReviews"`
 	} `json:"rating,omitempty"`
-	SalesUnit           string        `json:"salesUnit,omitempty"`
-	VariantList         []interface{} `json:"variantList,omitempty"`
-	IsVariantTypeSwatch bool          `json:"isVariantTypeSwatch,omitempty"`
-	IsSponsoredFlag     bool          `json:"isSponsoredFlag,omitempty"`
+	SalesUnit   string `json:"salesUnit,omitempty"`
+	VariantList []struct {
+		Name         string `json:"name"`
+		Image        string `json:"image"`
+		CanonicalUrl string `json:"canonicalUrl"`
+	} `json:"variantList"`
+	IsVariantTypeSwatch bool `json:"isVariantTypeSwatch,omitempty"`
+	IsSponsoredFlag     bool `json:"isSponsoredFlag,omitempty"`
 	TileTakeOverTile    struct {
 		Title    string `json:"title"`
 		Subtitle string `json:"subtitle"`
@@ -112,6 +112,7 @@ type WalmartSearchRawItem struct {
 		} `json:"tileCta"`
 		AdsEnabled string `json:"adsEnabled"`
 	} `json:"tileTakeOverTile,omitempty"`
+	ProductIndex int `json:"productIndex"`
 }
 
 type WalmartConfig map[string]interface{}
@@ -125,7 +126,7 @@ type WalmartRawPill struct {
 	} `json:"image"`
 }
 
-type WalmartRawConfigs struct {
+type WsrConfigs struct {
 	ModuleType string `json:"moduleType,omitempty"`
 	ViewConfig struct {
 		Title       string `json:"title"`
@@ -153,11 +154,11 @@ type WsrResult struct {
 					Title           string `json:"title"`
 					AggregatedCount int    `json:"aggregatedCount"`
 					ItemStacks      []struct {
-						Title                 string                 `json:"title"`
-						Description           string                 `json:"description"`
-						TotalItemCountDisplay string                 `json:"totalItemCountDisplay"`
-						Count                 int                    `json:"count"`
-						Items                 []WalmartSearchRawItem `json:"items"`
+						Title                 string         `json:"title"`
+						Description           string         `json:"description"`
+						TotalItemCountDisplay string         `json:"totalItemCountDisplay"`
+						Count                 int            `json:"count"`
+						Items                 []WsrSearchtem `json:"items"`
 					} `json:"itemStacks"`
 					Pagination struct {
 						MaxPage    int `json:"maxPage"`
@@ -188,10 +189,10 @@ type WsrResult struct {
 				} `json:"searchResult"`
 				ContentLayout struct {
 					Modules []struct {
-						Type    string            `json:"type"`
-						Name    string            `json:"name"`
-						Version int               `json:"version"`
-						Configs WalmartRawConfigs `json:"configs"`
+						Type    string     `json:"type"`
+						Name    string     `json:"name"`
+						Version int        `json:"version"`
+						Configs WsrConfigs `json:"configs"`
 					} `json:"modules"`
 				} `json:"contentLayout"`
 			} `json:"initialData"`
@@ -209,48 +210,53 @@ type WsrResult struct {
 	Locale     string `json:"locale"`
 }
 
-type WalmartSearchProduct struct {
-	Position         int      `json:"position"`
-	ID               string   `json:"id"`
-	ItemID           string   `json:"item_id"`
-	Name             string   `json:"name"`
-	Type             string   `json:"type"`
-	Brand            string   `json:"brand"`
-	ShortDescription string   `json:"short_description"`
-	AverageRating    float64  `json:"average_rating"`
-	NumberOfReviews  int      `json:"number_of_reviews"`
-	SalesUnit        string   `json:"sales_unit"`
-	SellerName       string   `json:"seller_name"`
-	Image            string   `json:"image"`
-	ImageSize        string   `json:"image_size"`
-	Price            float64  `json:"price"`
-	LinePrice        string   `json:"line_price"`
-	WasPrice         string   `json:"was_price"`
-	UnitPrice        string   `json:"unit_price"`
-	ItemPrice        string   `json:"item_price"`
-	PriceRange       string   `json:"price_range"`
-	IsEligible       bool     `json:"is_eligible"`
-	IsShowATC        bool     `json:"is_show_atc"`
-	IsShowOptions    bool     `json:"is_show_options"`
-	IsBuyNow         bool     `json:"is_buy_now"`
-	IsSponsored      bool     `json:"is_sponsored"`
-	IsOutofStock     bool     `json:"is_outofstock"`
-	Availability     string   `json:"availability"`
-	ProductLocation  string   `json:"product_location"`
-	Flag             string   `json:"flag"`
-	Fulfillment      []string `json:"fulfillment"`
-	URL              string   `json:"url"`
+type WsProduct struct {
+	Position         int     `json:"position"`
+	ID               string  `json:"id"`
+	ItemID           string  `json:"item_id"`
+	Name             string  `json:"name"`
+	Type             string  `json:"type"`
+	Brand            string  `json:"brand"`
+	ShortDescription string  `json:"short_description"`
+	AverageRating    float64 `json:"average_rating"`
+	NumberOfReviews  int     `json:"number_of_reviews"`
+	SalesUnit        string  `json:"sales_unit"`
+	SellerName       string  `json:"seller_name"`
+	Image            string  `json:"image"`
+	ImageSize        string  `json:"image_size"`
+	Price            float64 `json:"price"`
+	PriceInfo        struct {
+		LinePrice  string `json:"line_price"`
+		WasPrice   string `json:"was_price"`
+		UnitPrice  string `json:"unit_price"`
+		ItemPrice  string `json:"item_price"`
+		ShipPrice  string `json:"ship_price"`
+		PriceRange string `json:"price_range"`
+		Savings    string `json:"savings"`
+	} `json:"price_info"`
+	IsEligible      bool      `json:"is_eligible"`
+	IsShowATC       bool      `json:"is_show_atc"`
+	IsShowOptions   bool      `json:"is_show_options"`
+	IsBuyNow        bool      `json:"is_buy_now"`
+	IsSponsored     bool      `json:"is_sponsored"`
+	IsOutofStock    bool      `json:"is_outofstock"`
+	Availability    string    `json:"availability"`
+	ProductLocation string    `json:"product_location"`
+	Flag            string    `json:"flag"`
+	Fulfillment     []string  `json:"fulfillment"`
+	URL             string    `json:"url"`
+	Variants        []WStrMap `json:"variants"`
 }
 
 type WalmartLink map[string]string
 
-type WalmartSearchPill struct {
+type WsSearchPill struct {
 	Title string `json:"title"`
 	Image string `json:"image"`
 	URL   string `json:"url"`
 }
 
-type WalmartSearchBanner struct {
+type WsSearchBanner struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Image       string `json:"image"`
@@ -258,7 +264,7 @@ type WalmartSearchBanner struct {
 	Button      string `json:"button"`
 }
 
-type WalmartSearchTile struct {
+type WsSearchTile struct {
 	Title    string `json:"title"`
 	Subtitle string `json:"subtitle"`
 	Image    string `json:"image"`
@@ -269,14 +275,14 @@ type WalmartSearchTile struct {
 }
 
 type WsData struct {
-	TotalCount        int                    `json:"total_count"`
-	TotalCountDisplay string                 `json:"total_count_display"`
-	Query             map[string]string      `json:"search_query"`
-	RelatedSearch     []WalmartLink          `json:"related_search"`
-	Results           []WalmartSearchProduct `json:"results"`
-	Tiles             []WalmartSearchTile    `json:"takeover_tiles"`
-	Pills             []WalmartSearchPill    `json:"search_pills"`
-	Banner            WalmartSearchBanner    `json:"search_banner"`
+	TotalCount        int               `json:"total_count"`
+	TotalCountDisplay string            `json:"total_count_display"`
+	Query             map[string]string `json:"search_query"`
+	RelatedSearch     []WalmartLink     `json:"related_search"`
+	Results           []WsProduct       `json:"results"`
+	Tiles             []WsSearchTile    `json:"takeover_tiles"`
+	Pills             []WsSearchPill    `json:"search_pills"`
+	Banner            WsSearchBanner    `json:"search_banner"`
 	Pagination        struct {
 		PageCount   int      `json:"page_count"`
 		CurrentPage int      `json:"current_page"`
@@ -290,11 +296,11 @@ type WsResult struct {
 	URL    string `json:"url"`
 }
 
-func normalizeWalmartImage(url string) string {
+func WS_NormalizeImage(url string) string {
 	return strings.Split(url, "?")[0]
 }
 
-func makeUrl(path string, params map[string]string) string {
+func WS_MakeUrl(path string, params map[string]string) string {
 	// Create a Values instance to encode the query parameters
 	values := url.Values{}
 	for key, value := range params {
@@ -305,30 +311,31 @@ func makeUrl(path string, params map[string]string) string {
 	return path + "?" + queryString
 }
 
-func parseWalmartSearchTile(item WalmartSearchRawItem) WalmartSearchTile {
-	var tile WalmartSearchTile
+func WS_ParseSearchTile(item WsrSearchtem) WsSearchTile {
+	var tile WsSearchTile
 	tile.Title = item.TileTakeOverTile.Title
 	tile.Subtitle = item.TileTakeOverTile.Subtitle
-	tile.Image = normalizeWalmartImage(item.TileTakeOverTile.Image.Src)
+	tile.Image = WS_NormalizeImage(item.TileTakeOverTile.Image.Src)
 	if len(item.TileTakeOverTile.TileCta) > 0 {
 		tile.Link.Title = item.TileTakeOverTile.TileCta[0].CtaLink.Title
 		tile.Link.Url = item.TileTakeOverTile.TileCta[0].CtaLink.ClickThrough.Value
 	}
 	return tile
 }
-func parseWalmartSearchProduct(item WalmartSearchRawItem, position int, baseUrl string) WalmartSearchProduct {
-	var product WalmartSearchProduct
+
+func WS_ParseProduct(item WsrSearchtem, position int, baseUrl string) WsProduct {
+	var product WsProduct
 	product.Position = position
 	product.ID = item.Id
-	product.ItemID = item.UsItemId
-	product.Availability = item.AvailabilityStatusDisplayValue
+	product.ItemID = item.ItemId
+	product.Availability = item.AvailabilityStatus
 	product.AverageRating = item.AverageRating
 	product.Brand = item.Brand
 	product.Flag = item.Flag
 	for _, value := range item.FulfillmentBadgeGroups {
 		product.Fulfillment = append(product.Fulfillment, value.Text+value.SlaText)
 	}
-	product.Image = normalizeWalmartImage(item.Image)
+	product.Image = WS_NormalizeImage(item.Image)
 	product.ImageSize = item.ImageSize
 	product.IsBuyNow = item.ShowBuyNow
 	product.IsEligible = item.SnapEligible
@@ -336,28 +343,37 @@ func parseWalmartSearchProduct(item WalmartSearchRawItem, position int, baseUrl 
 	product.IsShowATC = item.ShowAtc
 	product.IsShowOptions = item.ShowOptions
 	product.IsSponsored = item.IsSponsoredFlag
-	product.ItemPrice = item.PriceInfo.ItemPrice
-	product.LinePrice = item.PriceInfo.LinePrice
 	product.Name = item.Name
 	product.NumberOfReviews = item.NumberOfReviews
 	product.Price = item.Price
-	product.PriceRange = item.PriceInfo.PriceRangeString
-	product.ProductLocation = item.ProductLocationDisplayValue
+	product.PriceInfo.PriceRange = item.PriceInfo.PriceRange
+	product.PriceInfo.ItemPrice = item.PriceInfo.ItemPrice
+	product.PriceInfo.LinePrice = item.PriceInfo.LinePrice
+	product.PriceInfo.UnitPrice = item.PriceInfo.UnitPrice
+	product.PriceInfo.WasPrice = item.PriceInfo.WasPrice
+	product.PriceInfo.ShipPrice = item.PriceInfo.ShipPrice
+	product.PriceInfo.Savings = item.PriceInfo.Savings
+	product.ProductLocation = item.ProductLocation
 	product.SalesUnit = item.SalesUnit
 	product.SellerName = item.SellerName
 	product.ShortDescription = item.ShortDescription
 	product.Type = item.Type
 	product.URL = baseUrl + item.CanonicalUrl
-	product.UnitPrice = item.PriceInfo.UnitPrice
-	product.WasPrice = item.PriceInfo.WasPrice
+	for _, elem := range item.VariantList {
+		variant := make(WStrMap)
+		variant["name"] = elem.Name
+		variant["image"] = elem.Image
+		variant["url"] = baseUrl + elem.CanonicalUrl
+		product.Variants = append(product.Variants, variant)
+	}
 	return product
 }
 
-func parseWalmartPills(config WalmartRawConfigs) []WalmartSearchPill {
-	var pills []WalmartSearchPill
+func WS_ParseSearchPills(config WsrConfigs) []WsSearchPill {
+	var pills []WsSearchPill
 	for _, value := range config.Pills {
-		var pill WalmartSearchPill
-		pill.Image = normalizeWalmartImage(value.Image.Src)
+		var pill WsSearchPill
+		pill.Image = WS_NormalizeImage(value.Image.Src)
 		pill.Title = value.Title
 		pill.URL = value.Url
 		pills = append(pills, pill)
@@ -365,13 +381,13 @@ func parseWalmartPills(config WalmartRawConfigs) []WalmartSearchPill {
 	return pills
 }
 
-func parseWalmartBanner(config WalmartRawConfigs) WalmartSearchBanner {
-	var banner WalmartSearchBanner
+func WS_ParseSearchBanner(config WsrConfigs) WsSearchBanner {
+	var banner WsSearchBanner
 	banner.Title = config.ViewConfig.DisplayName
 	banner.URL = config.ViewConfig.Url
 	banner.Button = config.ViewConfig.UrlAlt
 	banner.Description = config.ViewConfig.Description
-	banner.Image = normalizeWalmartImage(config.ViewConfig.Image)
+	banner.Image = WS_NormalizeImage(config.ViewConfig.Image)
 	return banner
 }
 
@@ -380,8 +396,6 @@ func Walmart_SearchPageScraper(jsonTag *goquery.Selection) WsResult {
 	var result WsResult
 	var data WsData
 	baseUrl := "https://www.walmart.com"
-	// dataTag := doc.Find("script#__NEXT_DATA__").First()
-	// if dataTag.Length() > 0 {
 	json.Unmarshal([]byte(jsonTag.Text()), &raw)
 	baseUrl = raw.RuntimeConfig.Host.Wmt
 	for _, item := range raw.Props.PageProps.InitialData.SearchResult.RelatedSearch {
@@ -394,20 +408,20 @@ func Walmart_SearchPageScraper(jsonTag *goquery.Selection) WsResult {
 	itemStack := raw.Props.PageProps.InitialData.SearchResult.ItemStacks[0]
 	for _, item := range itemStack.Items {
 		if item.TypeName == "Product" {
-			product := parseWalmartSearchProduct(item, position, baseUrl)
+			product := WS_ParseProduct(item, position, baseUrl)
 			data.Results = append(data.Results, product)
 			position += 1
 		} else if item.TypeName == "TileTakeOverProductPlaceholder" {
-			tile := parseWalmartSearchTile(item)
+			tile := WS_ParseSearchTile(item)
 			data.Tiles = append(data.Tiles, tile)
 		}
 	}
 	modules := raw.Props.PageProps.InitialData.ContentLayout.Modules
 	for _, module := range modules {
 		if module.Type == "PillsModule" {
-			data.Pills = parseWalmartPills(module.Configs)
+			data.Pills = WS_ParseSearchPills(module.Configs)
 		} else if module.Type == "SearchBanner" {
-			data.Banner = parseWalmartBanner(module.Configs)
+			data.Banner = WS_ParseSearchBanner(module.Configs)
 		}
 	}
 	data.TotalCount = itemStack.Count
@@ -416,7 +430,7 @@ func Walmart_SearchPageScraper(jsonTag *goquery.Selection) WsResult {
 	pagination := raw.Props.PageProps.InitialData.SearchResult.Pagination
 	data.Pagination.CurrentPage = pagination.Properties.Page
 	data.Pagination.PageCount = pagination.MaxPage
-	result.URL = makeUrl(baseUrl+raw.Page, raw.Query)
+	result.URL = WS_MakeUrl(baseUrl+raw.Page, raw.Query)
 	for i := 1; i <= pagination.MaxPage; i++ {
 		link := result.URL + "&affinityOverride=" + pagination.Properties.AffinityOverride
 		if i != 1 {
@@ -424,7 +438,6 @@ func Walmart_SearchPageScraper(jsonTag *goquery.Selection) WsResult {
 		}
 		data.Pagination.PageLinks = append(data.Pagination.PageLinks, link)
 	}
-	// }
 	result.Data = data
 	result.Status = "parse_successful"
 	return result
