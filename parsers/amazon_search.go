@@ -1,6 +1,7 @@
-package main
+package parsers
 
 import (
+	"go-parser/helper"
 	"strconv"
 	"strings"
 
@@ -72,7 +73,7 @@ func getAdsItem(s *goquery.Selection) AmazonAdsInfo {
 		record.HasPrime = s.Find("span.s-prime").Length() > 0
 		titleTag := s.Find("span.a-truncate-full").First()
 		if titleTag.Length() > 0 {
-			record.Name = normalizeText(titleTag.Text())
+			record.Name = helper.NormalizeText(titleTag.Text())
 		}
 		record.IsAmazonChoice = false
 		record.IsLimitedDeal = false
@@ -84,7 +85,7 @@ func getAdsItem(s *goquery.Selection) AmazonAdsInfo {
 			if err == nil {
 				record.Stars = num
 			}
-			reviewText := normalizeText(rateTag.Text())
+			reviewText := helper.NormalizeText(rateTag.Text())
 			review, err := strconv.Atoi(strings.ReplaceAll(reviewText, ",", ""))
 			if err == nil {
 				record.TotalReviews = review
@@ -105,19 +106,19 @@ func getSearchItem(s *goquery.Selection, baseUrl string, pos int) AmazonSearchIn
 		imgTag := s.Find("img").First()
 		// image
 		if imgTag.Length() > 0 {
-			record.Image = normalizeImage(imgTag.AttrOr("src", ""))
+			record.Image = helper.NormalizeImage(imgTag.AttrOr("src", ""))
 		}
 		record.IsAmazonChoice = false
 		record.IsLimitedDeal = false
 		record.IsBestSeller = s.Find("span.sx-bestseller-component").Length() > 0
 		titleTag := s.Find("h2").First()
 		if titleTag.Length() > 0 {
-			record.Name = normalizeText(titleTag.Text())
+			record.Name = helper.NormalizeText(titleTag.Text())
 		}
 		record.Position = pos
 		priceTag := s.Find(".s-price-instructions-style").First()
 		if priceTag.Length() > 0 {
-			priceText := getPrice(normalizeText(priceTag.Text()))
+			priceText := helper.ExtractPrice(helper.NormalizeText(priceTag.Text()))
 			record.PriceString = priceText
 			if priceText != "" {
 				price, err := strconv.ParseFloat(priceText[1:], 64)
@@ -137,7 +138,7 @@ func getSearchItem(s *goquery.Selection, baseUrl string, pos int) AmazonSearchIn
 		if rateTag.Length() > 0 {
 			starTag := rateTag.Find("span").First()
 			if starTag.Length() > 0 {
-				starText := strings.Split(normalizeText(starTag.Text()), " ")[0]
+				starText := strings.Split(helper.NormalizeText(starTag.Text()), " ")[0]
 				num, err := strconv.ParseFloat(starText, 64)
 				if err == nil {
 					record.Stars = num
@@ -145,7 +146,7 @@ func getSearchItem(s *goquery.Selection, baseUrl string, pos int) AmazonSearchIn
 			}
 			reviewTag := starTag.Next()
 			if reviewTag.Length() > 0 {
-				reviewText := normalizeText(reviewTag.Text())
+				reviewText := helper.NormalizeText(reviewTag.Text())
 				review, err := strconv.Atoi(strings.ReplaceAll(reviewText, ",", ""))
 				if err == nil {
 					record.TotalReviews = review
@@ -183,7 +184,7 @@ func Amazon_SearchPagesScraper(doc *goquery.Document) AmazonSearchResult {
 	})
 	paginationTag := doc.Find(".s-pagination-container").First()
 	if paginationTag.Length() > 0 {
-		lastNumStr := normalizeText(paginationTag.Find("span.s-pagination-item").Last().Text())
+		lastNumStr := helper.NormalizeText(paginationTag.Find("span.s-pagination-item").Last().Text())
 		num, err := strconv.Atoi(lastNumStr)
 		if err != nil {
 			num = 0

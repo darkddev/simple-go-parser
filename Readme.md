@@ -1,12 +1,23 @@
-# Amazon Html Parsing Server
+---
+title: Simple Go Parser
+---
 
-## Run server
+# Simple Go Parser For Google, Amazon Pages
 
-go run .
+Simple parser API server to extract the data from the HTML response and return the data in JSON format.
 
-## Api Testing
+## Installation
 
-python3 api.py amazon <htmlfile>
+- Ensure you have go installed on your system.
+- Clone or download the repository.
+- Run the following command to install necessary dependencies:
 
-python3 api.py google <htmlfile>
+```bash
+$ go install
+```
+## Build & Run
 
+```bash
+$ go build
+$ ./go-parser
+```

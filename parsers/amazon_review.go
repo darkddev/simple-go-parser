@@ -1,6 +1,7 @@
-package main
+package parsers
 
 import (
+	"go-parser/helper"
 	"strconv"
 	"strings"
 
@@ -60,7 +61,7 @@ type AmazonReviewResult struct {
 
 func extractVariation(variationTag *goquery.Selection) map[string]string {
 	variationMap := make(map[string]string)
-	variationText := normalizeTextWithReturn(variationTag.Text())
+	variationText := helper.NormalizeTextWithReturn(variationTag.Text())
 	variations := strings.Split(variationText, "\n")
 	for _, variation := range variations {
 		vals := strings.Split(variation, ":")
@@ -77,12 +78,12 @@ func parseReviewSummary(reviewTag *goquery.Selection, baseUrl string) AmazonRevi
 	var info AmazonReviewInfo
 	profileTag := reviewTag.Find(".a-profile").First()
 	if profileTag.Length() > 0 {
-		info.Username = normalizeText(profileTag.Find("span").First().Text())
-		info.UserURL = normalizeUrl(baseUrl, profileTag.AttrOr("href", ""))
+		info.Username = helper.NormalizeText(profileTag.Find("span").First().Text())
+		info.UserURL = helper.NormalizeUrl(baseUrl, profileTag.AttrOr("href", ""))
 	}
 	reviewRatingTag := reviewTag.Find("i[data-hook='review-star-rating-view-point']").First()
 	if reviewRatingTag.Length() > 0 {
-		starText := normalizeText(reviewRatingTag.Find("span").First().Text())
+		starText := helper.NormalizeText(reviewRatingTag.Find("span").First().Text())
 		num, err := strconv.Atoi(strings.Split(starText, ".")[0])
 		if err == nil {
 			info.Stars = num
@@ -90,7 +91,7 @@ func parseReviewSummary(reviewTag *goquery.Selection, baseUrl string) AmazonRevi
 	}
 	reviewTitleTag := reviewTag.Find(".review-title").First()
 	if reviewTitleTag.Length() > 0 {
-		titleTexts := strings.Split(extractText(reviewTitleTag, "|"), "|")
+		titleTexts := strings.Split(helper.ExtractText(reviewTitleTag, "|"), "|")
 		if len(titleTexts) >= 2 && titleTexts[len(titleTexts)-1] == "" {
 			info.Title = titleTexts[len(titleTexts)-2]
 		} else {
@@ -99,21 +100,21 @@ func parseReviewSummary(reviewTag *goquery.Selection, baseUrl string) AmazonRevi
 	}
 	reviewDateTag := reviewTag.Find(".review-date").First()
 	if reviewDateTag.Length() > 0 {
-		dateText := strings.Split(normalizeText(reviewDateTag.Text()), "on")[1]
+		dateText := strings.Split(helper.NormalizeText(reviewDateTag.Text()), "on")[1]
 		info.Date = strings.Trim(dateText, " ")
 	}
 	reviewContentTag := reviewDateTag.Parent().Next()
 	if reviewContentTag.Length() > 0 {
-		reviewText := extractText(reviewContentTag, " ")
+		reviewText := helper.ExtractText(reviewContentTag, " ")
 		info.Review = reviewText
 	}
 	readMoreTag := reviewTag.Find(".readMore").Find("a").First()
 	if readMoreTag.Length() > 0 {
-		info.ReviewURL = normalizeUrl(baseUrl, readMoreTag.AttrOr("href", ""))
+		info.ReviewURL = helper.NormalizeUrl(baseUrl, readMoreTag.AttrOr("href", ""))
 	}
 	reviewVoteTag := reviewTag.Find(".review-votes").First()
 	if reviewVoteTag.Length() > 0 {
-		reviewVoteText := strings.Split(normalizeText(reviewVoteTag.Text()), " ")[0]
+		reviewVoteText := strings.Split(helper.NormalizeText(reviewVoteTag.Text()), " ")[0]
 		if reviewVoteText == "One" {
 			info.TotalFoundHelpful = 1
 		} else {
@@ -130,12 +131,12 @@ func parseReviewInfo(reviewTag *goquery.Selection, baseUrl string) AmazonReviewI
 	var info AmazonReviewInfo
 	profileTag := reviewTag.Find(".a-profile").First()
 	if profileTag.Length() > 0 {
-		info.Username = normalizeText(profileTag.Find("span").First().Text())
-		info.UserURL = normalizeUrl(baseUrl, profileTag.AttrOr("href", ""))
+		info.Username = helper.NormalizeText(profileTag.Find("span").First().Text())
+		info.UserURL = helper.NormalizeUrl(baseUrl, profileTag.AttrOr("href", ""))
 	}
 	reviewRatingTag := reviewTag.Find(".review-rating").First()
 	if reviewRatingTag.Length() > 0 {
-		starText := normalizeText(reviewRatingTag.Find("span").First().Text())
+		starText := helper.NormalizeText(reviewRatingTag.Find("span").First().Text())
 		num, err := strconv.Atoi(strings.Split(starText, ".")[0])
 		if err == nil {
 			info.Stars = num
@@ -143,23 +144,23 @@ func parseReviewInfo(reviewTag *goquery.Selection, baseUrl string) AmazonReviewI
 	}
 	reviewTitleTag := reviewTag.Find(".review-title").First()
 	if reviewTitleTag.Length() > 0 {
-		titleTexts := strings.Split(extractText(reviewTitleTag, "|"), "|")
+		titleTexts := strings.Split(helper.ExtractText(reviewTitleTag, "|"), "|")
 		if len(titleTexts) >= 2 && titleTexts[len(titleTexts)-1] == "" {
 			info.Title = titleTexts[len(titleTexts)-2]
 		} else {
 			info.Title = titleTexts[len(titleTexts)-1]
 		}
-		info.ReviewURL = normalizeUrl(baseUrl, reviewTitleTag.AttrOr("href", ""))
+		info.ReviewURL = helper.NormalizeUrl(baseUrl, reviewTitleTag.AttrOr("href", ""))
 	}
 	reviewDateTag := reviewTag.Find(".review-date").First()
 	if reviewDateTag.Length() > 0 {
-		// println(normalizeText(reviewTag.Text()))
-		dateText := strings.Split(normalizeText(reviewDateTag.Text()), "on")[1]
+		// println(NormalizeText(reviewTag.Text()))
+		dateText := strings.Split(helper.NormalizeText(reviewDateTag.Text()), "on")[1]
 		info.Date = strings.Trim(dateText, " ")
 	}
 	reviewContentTag := reviewTag.Find(".review-text-content").First()
 	if reviewContentTag.Length() > 0 {
-		reviewText := extractText(reviewContentTag, " ")
+		reviewText := helper.ExtractText(reviewContentTag, " ")
 		info.Review = reviewText
 	}
 	reviewVideoTag := reviewTag.Find("input.video-url").First()
@@ -168,7 +169,7 @@ func parseReviewInfo(reviewTag *goquery.Selection, baseUrl string) AmazonReviewI
 	}
 	reviewVoteTag := reviewTag.Find("span[data-hook='helpful-vote-statement']").First()
 	if reviewVoteTag.Length() > 0 {
-		reviewVoteText := strings.Split(normalizeText(reviewVoteTag.Text()), " ")[0]
+		reviewVoteText := strings.Split(helper.NormalizeText(reviewVoteTag.Text()), " ")[0]
 		if reviewVoteText == "One" {
 			info.TotalFoundHelpful = 1
 		} else {
@@ -181,7 +182,7 @@ func parseReviewInfo(reviewTag *goquery.Selection, baseUrl string) AmazonReviewI
 	reviewImageTags := reviewTag.Find(".review-image-container").Find("img")
 	if reviewImageTags.Length() > 0 {
 		reviewImageTags.Each(func(i int, s *goquery.Selection) {
-			info.Images = append(info.Images, normalizeImage(s.AttrOr("src", "")))
+			info.Images = append(info.Images, helper.NormalizeImage(s.AttrOr("src", "")))
 		})
 	}
 	// info.Variation = make(map[string]string)
@@ -192,7 +193,7 @@ func parseReviewInfo(reviewTag *goquery.Selection, baseUrl string) AmazonReviewI
 	reviewBadgeTags := reviewTag.Find("[data-hook='avp-badge']")
 	if reviewBadgeTags.Length() > 0 {
 		reviewBadgeTags.Each(func(i int, s *goquery.Selection) {
-			reviewBadgeText := normalizeText(s.Text())
+			reviewBadgeText := helper.NormalizeText(s.Text())
 			if reviewBadgeText == "Verified Purchase" {
 				info.VerifiedPurchase = true
 			}
@@ -209,14 +210,14 @@ func Amazon_ReviewPagesScraper(doc *goquery.Document) AmazonReviewResult {
 	href, exists := doc.Find("link[rel='canonical']").Attr("href")
 	if exists {
 		result.URL = href
-		baseUrl = getBaseUrl(href)
+		baseUrl = helper.ExtractBaseUrl(href)
 	}
 	// parse review summary
 	reviewSummaryTag := doc.Find("#cm_cr-product_info").Find(".reviewNumericalSummary").First()
 	if reviewSummaryTag.Length() > 0 {
 		averageRatingTag := reviewSummaryTag.Find(".averageStarRatingIconAndCount").First()
 		if averageRatingTag.Length() > 0 {
-			starText := strings.Split(normalizeText(averageRatingTag.Text()), " ")[0]
+			starText := strings.Split(helper.NormalizeText(averageRatingTag.Text()), " ")[0]
 			starRate, err := strconv.ParseFloat(starText, 64)
 			if err == nil {
 				data.AverageRating = starRate
@@ -224,7 +225,7 @@ func Amazon_ReviewPagesScraper(doc *goquery.Document) AmazonReviewResult {
 		}
 		totalReviewTag := reviewSummaryTag.Find(".averageStarRatingNumerical").First()
 		if totalReviewTag.Length() > 0 {
-			totalReviewText := normalizeText(totalReviewTag.Text())
+			totalReviewText := helper.NormalizeText(totalReviewTag.Text())
 			totalReviewText = strings.ReplaceAll(strings.Split(totalReviewText, " ")[0], ",", "")
 			num, err := strconv.Atoi(totalReviewText)
 			if err == nil {
@@ -263,19 +264,19 @@ func Amazon_ReviewPagesScraper(doc *goquery.Document) AmazonReviewResult {
 	if productInfoTag.Length() > 0 {
 		productTitleTag := productInfoTag.Find(".product-title").First()
 		if productTitleTag.Length() > 0 {
-			data.Product.Name = normalizeText(productTitleTag.Text())
+			data.Product.Name = helper.NormalizeText(productTitleTag.Text())
 			productLinkTag := productTitleTag.Find("a").First()
 			if productLinkTag.Length() > 0 {
-				data.Product.URL = normalizeUrl(baseUrl, productLinkTag.AttrOr("href", ""))
+				data.Product.URL = helper.NormalizeUrl(baseUrl, productLinkTag.AttrOr("href", ""))
 			}
 		}
 		productBrandTag := productInfoTag.Find(".product-by-line").Find("a").First()
 		if productBrandTag.Length() > 0 {
-			data.Product.Brand = normalizeText(productBrandTag.Text())
+			data.Product.Brand = helper.NormalizeText(productBrandTag.Text())
 		}
 		productImageTag := doc.Find("img").First()
 		if productImageTag.Length() > 0 {
-			data.Product.Image = normalizeImage(productImageTag.AttrOr("src", ""))
+			data.Product.Image = helper.NormalizeImage(productImageTag.AttrOr("src", ""))
 		}
 		productVariationTag := productInfoTag.Find(".product-variation-strip").Find("span").First()
 		if productVariationTag.Length() > 0 {
@@ -303,7 +304,7 @@ func Amazon_ReviewPagesScraper(doc *goquery.Document) AmazonReviewResult {
 	paginationTags := doc.Find("#cm_cr-pagination_bar").Find("a")
 	if paginationTags.Length() > 0 {
 		paginationTags.Each(func(i int, s *goquery.Selection) {
-			url := normalizeUrl(baseUrl, s.AttrOr("href", ""))
+			url := helper.NormalizeUrl(baseUrl, s.AttrOr("href", ""))
 			data.Pagination = append(data.Pagination, url)
 		})
 	}

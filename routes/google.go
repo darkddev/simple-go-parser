@@ -1,6 +1,8 @@
-package main
+package routes
 
 import (
+	"go-parser/helper"
+	"go-parser/parsers"
 	"net/http"
 	"os"
 	"strings"
@@ -20,12 +22,12 @@ func Google_ParseHtml(filename string) bool {
 		println(err)
 		return false
 	}
-	result := Google_SearchPagesScraper(doc)
-	return saveJsonFile(result, filename)
+	result := parsers.Google_SearchPagesScraper(doc)
+	return helper.SaveJsonFile(result, filename)
 }
 
 func Google_PostRequest(c *gin.Context) {
-	var postData RequestData
+	var postData helper.RequestData
 	// Get post data
 	if err := c.BindJSON(&postData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -38,7 +40,7 @@ func Google_PostRequest(c *gin.Context) {
 		return
 	}
 	var result interface{}
-	result = Google_SearchPagesScraper(doc)
-	// saveJsonFile(result, "result")
+	result = parsers.Google_SearchPagesScraper(doc)
+	// SaveJsonFile(result, "result")
 	c.JSON(http.StatusOK, result)
 }

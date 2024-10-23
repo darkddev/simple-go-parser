@@ -1,7 +1,9 @@
-package main
+package routes
 
 import (
 	"errors"
+	"go-parser/helper"
+	"go-parser/parsers"
 	"net/http"
 	"os"
 	"strings"
@@ -9,10 +11,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 )
-
-type WRawResult struct {
-	Page string `json:"page"`
-}
 
 func Walmart_ParseHtml(filename string) bool {
 	content, err := os.ReadFile("./data/" + filename + ".html")
@@ -31,24 +29,24 @@ func Walmart_ParseHtml(filename string) bool {
 		return false
 	}
 	var result interface{}
-	if Walmart_IsSearchPage(json) {
-		result = Walmart_BrowsePageScraper(json)
-	} else if Walmart_IsProductPage(json) {
-		result = Walmart_ProductPageScraper(json)
-	} else if Walmart_IsReviewPage(json) {
-		result = Walmart_ReviewPageScraper(json)
-	} else if Walmart_IsCategoryPage(json) {
-		result = Walmart_CategoryPageScraper(json)
-	} else if Walmart_IsBrowsePage(json) {
-		result = Walmart_BrowsePageScraper(json)
-	} else if Walmart_IsShopPage(json) {
-		result = Walmart_ShopPageScraper(json)
+	if parsers.Walmart_IsSearchPage(json) {
+		result = parsers.Walmart_BrowsePageScraper(json)
+	} else if parsers.Walmart_IsProductPage(json) {
+		result = parsers.Walmart_ProductPageScraper(json)
+	} else if parsers.Walmart_IsReviewPage(json) {
+		result = parsers.Walmart_ReviewPageScraper(json)
+	} else if parsers.Walmart_IsCategoryPage(json) {
+		result = parsers.Walmart_CategoryPageScraper(json)
+	} else if parsers.Walmart_IsBrowsePage(json) {
+		result = parsers.Walmart_BrowsePageScraper(json)
+	} else if parsers.Walmart_IsShopPage(json) {
+		result = parsers.Walmart_ShopPageScraper(json)
 	} else {
 		println("Not found")
 		return false
 	}
 	// return true
-	return saveJsonFile(result, filename)
+	return helper.SaveJsonFile(result, filename)
 }
 
 func Walmart_ExtractJson(doc *goquery.Document) (*goquery.Selection, error) {
@@ -60,7 +58,7 @@ func Walmart_ExtractJson(doc *goquery.Document) (*goquery.Selection, error) {
 }
 
 func Walmart_PostRequest(c *gin.Context) {
-	var postData RequestData
+	var postData helper.RequestData
 	// Get post data
 	if err := c.BindJSON(&postData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -78,23 +76,23 @@ func Walmart_PostRequest(c *gin.Context) {
 		return
 	}
 	var result interface{}
-	if Walmart_IsSearchPage(json) {
-		result = Walmart_BrowsePageScraper(json)
-	} else if Walmart_IsProductPage(json) {
-		result = Walmart_ProductPageScraper(json)
-	} else if Walmart_IsReviewPage(json) {
-		result = Walmart_ReviewPageScraper(json)
-	} else if Walmart_IsCategoryPage(json) {
-		result = Walmart_CategoryPageScraper(json)
-	} else if Walmart_IsBrowsePage(json) {
-		result = Walmart_BrowsePageScraper(json)
-	} else if Walmart_IsShopPage(json) {
-		result = Walmart_ShopPageScraper(json)
+	if parsers.Walmart_IsSearchPage(json) {
+		result = parsers.Walmart_BrowsePageScraper(json)
+	} else if parsers.Walmart_IsProductPage(json) {
+		result = parsers.Walmart_ProductPageScraper(json)
+	} else if parsers.Walmart_IsReviewPage(json) {
+		result = parsers.Walmart_ReviewPageScraper(json)
+	} else if parsers.Walmart_IsCategoryPage(json) {
+		result = parsers.Walmart_CategoryPageScraper(json)
+	} else if parsers.Walmart_IsBrowsePage(json) {
+		result = parsers.Walmart_BrowsePageScraper(json)
+	} else if parsers.Walmart_IsShopPage(json) {
+		result = parsers.Walmart_ShopPageScraper(json)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported page"})
 		return
 	}
 	// id := uuid.New()
-	// saveJsonFile(result, id.String())
+	// SaveJsonFile(result, id.String())
 	c.JSON(http.StatusOK, result)
 }

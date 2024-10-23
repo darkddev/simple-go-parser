@@ -1,6 +1,8 @@
-package main
+package parsers
 
 import (
+	"go-parser/helper"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -91,7 +93,7 @@ func parseAdsTag(tag *goquery.Selection, position int, block string) GoogleAdsIn
 			ads.TrackingLink = linkTag.AttrOr("data-rw", "")
 			titleTag := linkTag.Find("span").First()
 			if titleTag.Length() > 0 {
-				ads.Title = normalizeText(titleTag.Text())
+				ads.Title = helper.NormalizeText(titleTag.Text())
 			}
 			thumbTag := linkTag.Find("img").First()
 			if thumbTag.Length() > 0 {
@@ -99,13 +101,13 @@ func parseAdsTag(tag *goquery.Selection, position int, block string) GoogleAdsIn
 			}
 			displayeLinkTag := linkTag.Find(".x2VHCd").First()
 			if displayeLinkTag.Length() > 0 {
-				ads.DisplayedLink = normalizeText(displayeLinkTag.Text())
+				ads.DisplayedLink = helper.NormalizeText(displayeLinkTag.Text())
 			}
 		}
 	}
 	descTag := headTag.Next()
 	if descTag.Length() > 0 {
-		ads.Description = normalizeText(descTag.Text())
+		ads.Description = helper.NormalizeText(descTag.Text())
 	}
 	blockLinkTags := tag.Find(SELECTOR_ADS_BLOCK)
 	if blockLinkTags.Length() > 0 {
@@ -116,11 +118,11 @@ func parseAdsTag(tag *goquery.Selection, position int, block string) GoogleAdsIn
 				linkTag := h3Tag.Find("a").First()
 				if linkTag.Length() > 0 {
 					link["link"] = linkTag.AttrOr("href", "")
-					link["title"] = normalizeText(linkTag.Text())
+					link["title"] = helper.NormalizeText(linkTag.Text())
 				}
 				textTag := h3Tag.Next()
 				if textTag.Length() > 0 {
-					link["description"] = normalizeText(textTag.Text())
+					link["description"] = helper.NormalizeText(textTag.Text())
 				}
 				ads.Sitelinks.Block = append(ads.Sitelinks.Block, link)
 			}
@@ -131,7 +133,7 @@ func parseAdsTag(tag *goquery.Selection, position int, block string) GoogleAdsIn
 		inlineTags.Each(func(i int, s *goquery.Selection) {
 			link := make(GoogleLink)
 			link["link"] = s.AttrOr("href", "")
-			link["title"] = normalizeText(s.Text())
+			link["title"] = helper.NormalizeText(s.Text())
 			ads.Sitelinks.Inline = append(ads.Sitelinks.Inline, link)
 		})
 	}
@@ -143,7 +145,7 @@ func parseQuestionTag(tag *goquery.Selection) []GoogleQuestion {
 	questionTags := tag.Find(SELECTOR_QUESTION)
 	questionTags.Each(func(i int, s *goquery.Selection) {
 		var question GoogleQuestion
-		question.Question = normalizeText(s.Text())
+		question.Question = helper.NormalizeText(s.Text())
 		questions = append(questions, question)
 	})
 	return questions
@@ -153,7 +155,7 @@ func parseKnowledgeTag(tag *goquery.Selection, baseUrl string) GoogleKnowledgeGr
 	var knowledge GoogleKnowledgeGraph
 	titleTag := tag.Find("[data-attrid='title']").First()
 	if titleTag.Length() > 0 {
-		knowledge.Title = normalizeText(titleTag.Text())
+		knowledge.Title = helper.NormalizeText(titleTag.Text())
 	}
 	imageTag := tag.Find("[data-attrid='image']").Find("img").First()
 	if imageTag.Length() > 0 {
@@ -161,11 +163,11 @@ func parseKnowledgeTag(tag *goquery.Selection, baseUrl string) GoogleKnowledgeGr
 	}
 	descTag := tag.Find("[data-attrid='description']").First()
 	if descTag.Length() > 0 {
-		knowledge.Description = normalizeText(descTag.Find("span").First().Text())
+		knowledge.Description = helper.NormalizeText(descTag.Find("span").First().Text())
 		sourceTag := descTag.Find("a").First()
 		if sourceTag.Length() > 0 {
 			knowledge.Source = make(map[string]string)
-			knowledge.Source["name"] = normalizeText(sourceTag.Text())
+			knowledge.Source["name"] = helper.NormalizeText(sourceTag.Text())
 			knowledge.Source["link"] = sourceTag.AttrOr("href", "")
 		}
 	}
@@ -175,12 +177,12 @@ func parseKnowledgeTag(tag *goquery.Selection, baseUrl string) GoogleKnowledgeGr
 			related := make(map[string]string)
 			linkTag := s.Find("a").First()
 			if linkTag.Length() > 0 {
-				related["name"] = normalizeText(linkTag.Text())
-				related["link"] = normalizeUrl(baseUrl, linkTag.AttrOr("href", ""))
+				related["name"] = helper.NormalizeText(linkTag.Text())
+				related["link"] = helper.NormalizeUrl(baseUrl, linkTag.AttrOr("href", ""))
 			}
 			contentTag := linkTag.Parent().Next()
 			if contentTag.Length() > 0 {
-				related["content"] = extractText(contentTag, " ")
+				related["content"] = helper.ExtractText(contentTag, " ")
 			}
 			imageTag := s.Find("img").First()
 			if imageTag.Length() > 0 {
@@ -194,7 +196,7 @@ func parseKnowledgeTag(tag *goquery.Selection, baseUrl string) GoogleKnowledgeGr
 		linkTag := s.Find("a").First()
 		if linkTag.Length() > 0 {
 			titleLink := make(GoogleLink)
-			titleLink["title"] = normalizeText(linkTag.Text())
+			titleLink["title"] = helper.NormalizeText(linkTag.Text())
 			titleLink["link"] = linkTag.AttrOr("href", "")
 			knowledge.SocialMedia = append(knowledge.SocialMedia, titleLink)
 		}
@@ -204,8 +206,8 @@ func parseKnowledgeTag(tag *goquery.Selection, baseUrl string) GoogleKnowledgeGr
 		linkTag := s.Find("a").First()
 		if linkTag.Length() > 0 {
 			titleLink := make(GoogleLink)
-			titleLink["title"] = normalizeText(linkTag.Text())
-			titleLink["link"] = normalizeUrl(baseUrl, linkTag.AttrOr("href", ""))
+			titleLink["title"] = helper.NormalizeText(linkTag.Text())
+			titleLink["link"] = helper.NormalizeUrl(baseUrl, linkTag.AttrOr("href", ""))
 			knowledge.SeeMoreAbout = append(knowledge.SeeMoreAbout, titleLink)
 		}
 	})
@@ -223,7 +225,7 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 			result.Link = headTag.AttrOr("href", "")
 			titleTag := headTag.Find("h3").First()
 			if titleTag.Length() > 0 {
-				result.Title = normalizeText(titleTag.Text())
+				result.Title = helper.NormalizeText(titleTag.Text())
 			}
 		}
 		thumbTag := headTag.Find("img.XNo5Ab").First()
@@ -232,7 +234,7 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 		}
 		displayedLinkTag := headTag.Find("cite").First()
 		if displayedLinkTag.Length() > 0 {
-			result.DisplayedLink = normalizeText(displayedLinkTag.Text())
+			result.DisplayedLink = helper.NormalizeText(displayedLinkTag.Text())
 		}
 		blockTags := divTag.Find("g-inner-card")
 		if blockTags.Length() > 0 {
@@ -243,11 +245,11 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 					blockLink["link"] = linkTag.AttrOr("href", "")
 					snippetTag := linkTag.Next()
 					if snippetTag.Length() > 0 {
-						blockLink["snippet"] = normalizeText(snippetTag.Text())
+						blockLink["snippet"] = helper.NormalizeText(snippetTag.Text())
 					}
 					dateTag := snippetTag.Next()
 					if dateTag.Length() > 0 {
-						blockLink["date"] = normalizeText(dateTag.Text())
+						blockLink["date"] = helper.NormalizeText(dateTag.Text())
 					}
 					result.SiteLinks.Block = append(result.SiteLinks.Block, blockLink)
 				}
@@ -261,7 +263,7 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 				titleTag := linkTag.Find("h3").First()
 				result.Link = linkTag.AttrOr("href", "")
 				if titleTag.Length() > 0 {
-					result.Title = normalizeText(titleTag.Text())
+					result.Title = helper.NormalizeText(titleTag.Text())
 				}
 			}
 			thumbTag := headTag.Find("img.XNo5Ab").First()
@@ -270,23 +272,23 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 			}
 			displayedLinkTag := headTag.Find("cite").First()
 			if displayedLinkTag.Length() > 0 {
-				result.DisplayedLink = normalizeText(displayedLinkTag.Text())
+				result.DisplayedLink = helper.NormalizeText(displayedLinkTag.Text())
 			}
 		}
 		snippetTag := tag.Find(".VwiC3b").First()
 		if snippetTag.Length() > 0 {
 			dateTag := snippetTag.Find(".LEwnzc").Find("span").First()
 			if dateTag.Length() > 0 {
-				result.Date = normalizeText(dateTag.Text())
+				result.Date = helper.NormalizeText(dateTag.Text())
 			}
-			result.Snippet = normalizeText(snippetTag.Text())
+			result.Snippet = helper.NormalizeText(snippetTag.Text())
 		}
 		inlineTags := tag.Find(".HiHjCd").Find("a")
 		if inlineTags.Length() > 0 {
 			inlineTags.Each(func(i int, s *goquery.Selection) {
 				inlineLink := make(GoogleLink)
 				inlineLink["link"] = s.AttrOr("href", "")
-				inlineLink["title"] = normalizeText(s.Text())
+				inlineLink["title"] = helper.NormalizeText(s.Text())
 				result.SiteLinks.Inline = append(result.SiteLinks.Inline, inlineLink)
 			})
 		}
@@ -299,11 +301,11 @@ func parseOrganicResult(tag *goquery.Selection, position int) GoogleOrganicResul
 					linkTag := h3Tag.Find("a").First()
 					if linkTag.Length() > 0 {
 						blockLink["link"] = linkTag.AttrOr("href", "")
-						blockLink["title"] = normalizeText(linkTag.Text())
+						blockLink["title"] = helper.NormalizeText(linkTag.Text())
 					}
 					snippetTag := h3Tag.Next()
 					if snippetTag.Length() > 0 {
-						blockLink["snippet"] = normalizeText(snippetTag.Text())
+						blockLink["snippet"] = helper.NormalizeText(snippetTag.Text())
 					}
 					result.SiteLinks.Block = append(result.SiteLinks.Block, blockLink)
 				}
@@ -319,8 +321,8 @@ func parseRelatedSearches(tag *goquery.Selection, baseUrl string) []GoogleLink {
 	if searchTags.Length() > 0 {
 		searchTags.Each(func(i int, s *goquery.Selection) {
 			link := make(GoogleLink)
-			link["link"] = normalizeUrl(baseUrl, s.AttrOr("href", ""))
-			link["query"] = normalizeText(s.Text())
+			link["link"] = helper.NormalizeUrl(baseUrl, s.AttrOr("href", ""))
+			link["query"] = helper.NormalizeText(s.Text())
 			relatedSearchs = append(relatedSearchs, link)
 		})
 	}
@@ -335,18 +337,18 @@ func Google_SearchPagesScraper(doc *goquery.Document) GoogleSearchResult {
 	if searchForm.Length() > 0 {
 		homeLinkTag := searchForm.Find("a").First()
 		if homeLinkTag.Length() > 0 {
-			baseUrl = getBaseUrl(homeLinkTag.AttrOr("href", ""))
+			baseUrl = helper.ExtractBaseUrl(homeLinkTag.AttrOr("href", ""))
 		}
 	}
 	// Parsing stats tag
 	statsTag := doc.Find("#result-stats").First()
 	if statsTag.Length() > 0 {
-		statsText := normalizeText(statsTag.Text())
-		total, err := extractIntFromPattern(statsText, PATTERN_TOTAL_RESULTS)
+		statsText := helper.NormalizeText(statsTag.Text())
+		total, err := helper.ExtractIntFromPattern(statsText, PATTERN_TOTAL_RESULTS)
 		if err == nil {
 			result.SearchInfo.TotalResults = total
 		}
-		time, err1 := extractFloatFromPattern(statsText, PATTERN_TIME_TAKEN)
+		time, err1 := helper.ExtractFloatFromPattern(statsText, PATTERN_TIME_TAKEN)
 		if err1 == nil {
 			result.SearchInfo.TimeTakenDisplayed = time
 		}
@@ -354,7 +356,7 @@ func Google_SearchPagesScraper(doc *goquery.Document) GoogleSearchResult {
 	// Parse query
 	queryTag := doc.Find("textarea#APjFqb").First()
 	if queryTag.Length() > 0 {
-		result.SearchInfo.QueryDisplayed = normalizeText(queryTag.Text())
+		result.SearchInfo.QueryDisplayed = helper.NormalizeText(queryTag.Text())
 	}
 	// parse knowlege
 	knowledgeTag := doc.Find(".kp-wholepage").First()
@@ -404,7 +406,7 @@ func Google_SearchPagesScraper(doc *goquery.Document) GoogleSearchResult {
 	// Parse more results
 	moreTag := doc.Find("#botstuff").Find("[jscontroller='bpec7b']").Find("a").First()
 	if moreTag.Length() > 0 {
-		result.More = normalizeUrl(baseUrl, moreTag.AttrOr("href", ""))
+		result.More = helper.NormalizeUrl(baseUrl, moreTag.AttrOr("href", ""))
 	}
 	return result
 }

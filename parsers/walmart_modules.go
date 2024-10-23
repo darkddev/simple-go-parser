@@ -1,4 +1,4 @@
-package main
+package parsers
 
 type WmCategory struct {
 	Name          string    `json:"name"`

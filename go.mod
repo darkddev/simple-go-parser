@@ -1,4 +1,4 @@
-module amazon-scraper
+module go-parser
 
 go 1.22.1
 

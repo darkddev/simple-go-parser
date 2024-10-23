@@ -1,4 +1,4 @@
-package main
+package helper
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func normalizeText(text string) string {
+func NormalizeText(text string) string {
 	text = strings.ReplaceAll(text, "‎", "")
 	re := regexp.MustCompile(`\s+`)
 	replacedStr := re.ReplaceAllString(strings.TrimSpace(text), " ")
@@ -22,7 +22,7 @@ func normalizeText(text string) string {
 	return newStr
 }
 
-func normalizeTextWithReturn(text string) string {
+func NormalizeTextWithReturn(text string) string {
 	text = strings.ReplaceAll(text, "‎", "")
 	re := regexp.MustCompile(`[^\S\r\n]+`)
 	replacedStr := re.ReplaceAllString(strings.TrimSpace(text), " ")
@@ -30,7 +30,7 @@ func normalizeTextWithReturn(text string) string {
 	return newStr
 }
 
-func normalizeImage(url string) string {
+func NormalizeImage(url string) string {
 	if url[:15] != "https://m.media" {
 		return ""
 	}
@@ -43,7 +43,7 @@ func normalizeImage(url string) string {
 	return strings.Join(segs, "/")
 }
 
-func getPrice(text string) string {
+func ExtractPrice(text string) string {
 	for _, price := range strings.Split(text, " ") {
 		pattern := `(.\d+(\.\d+)?)`
 		regex := regexp.MustCompile(pattern)
@@ -55,12 +55,12 @@ func getPrice(text string) string {
 	return ""
 }
 
-func getBaseUrl(url string) string {
+func ExtractBaseUrl(url string) string {
 	parts := strings.Split(url, "/")[:3]
 	return strings.Join(parts, "/")
 }
 
-func normalizeUrl(baseurl string, path string) string {
+func NormalizeUrl(baseurl string, path string) string {
 
 	if path[:4] == "http" {
 		return strings.ReplaceAll(path, "\u0026", "&")
@@ -70,43 +70,43 @@ func normalizeUrl(baseurl string, path string) string {
 	return ""
 }
 
-func extractText(s *goquery.Selection, splitter string) string {
+func ExtractText(s *goquery.Selection, splitter string) string {
 	var allText string = ""
 	if s.Get(0).Data != "span" && s.Children().Length() > 0 {
 		s.Children().Each(func(index int, item *goquery.Selection) {
-			allText += extractText(item, splitter)
+			allText += ExtractText(item, splitter)
 		})
 	} else {
 		if s.Get(0).Type == html.TextNode || s.Get(0).Data == "p" || s.Get(0).Data == "span" || s.Get(0).Data == "h2" || s.Get(0).Data == "h3" || s.Get(0).Data == "h4" {
-			allText += normalizeText(s.Text()) + splitter
+			allText += NormalizeText(s.Text()) + splitter
 		}
 	}
 	return strings.TrimSpace(allText)
 }
 
-func extractText1(s *goquery.Selection, splitter string) string {
+func ExtractText1(s *goquery.Selection, splitter string) string {
 	var allText string = ""
 	println(s.Get(0).Type, s.Get(0).Data, s.Text())
 	if s.Get(0).Data != "span" && s.Children().Length() > 0 {
 		s.Children().Each(func(index int, item *goquery.Selection) {
-			allText += extractText(item, splitter)
+			allText += ExtractText(item, splitter)
 		})
 	} else {
 		if s.Get(0).Type == html.TextNode || s.Get(0).Data == "p" || s.Get(0).Data == "span" || s.Get(0).Data == "h2" || s.Get(0).Data == "h3" || s.Get(0).Data == "h4" {
-			allText += normalizeText(s.Text()) + splitter
+			allText += NormalizeText(s.Text()) + splitter
 		}
 	}
 	return allText
 }
 
-func convertTableToMap(s *goquery.Selection) map[string]string {
+func ConvertTableToMap(s *goquery.Selection) map[string]string {
 	dataMap := make(map[string]string)
 
 	// Iterate over each table row
 	s.Find("tbody tr").Each(func(i int, row *goquery.Selection) {
 		// Extract the key and value from each row
-		key := normalizeText(row.Find("th").Text())
-		value := normalizeText(row.Find("td").Text())
+		key := NormalizeText(row.Find("th").Text())
+		value := NormalizeText(row.Find("td").Text())
 		// Add the key-value pair to the map
 		dataMap[key] = value
 	})
@@ -127,7 +127,7 @@ func customMarshal(v interface{}) ([]byte, error) {
 	return buf, nil
 }
 
-func saveJsonFile(result interface{}, filename string) bool {
+func SaveJsonFile(result interface{}, filename string) bool {
 	// Marshal the struct into JSON
 	jsonData, err := customMarshal(result)
 	if err != nil {
@@ -149,7 +149,7 @@ func saveJsonFile(result interface{}, filename string) bool {
 	return true
 }
 
-func extractIntFromPattern(text string, pattern string) (int, error) {
+func ExtractIntFromPattern(text string, pattern string) (int, error) {
 	// Compile the regular expression pattern
 	re := regexp.MustCompile(pattern)
 	// Find all matches of the pattern in the input string
@@ -165,7 +165,7 @@ func extractIntFromPattern(text string, pattern string) (int, error) {
 	return num, err
 }
 
-func extractFloatFromPattern(text string, pattern string) (float64, error) {
+func ExtractFloatFromPattern(text string, pattern string) (float64, error) {
 	// Compile the regular expression pattern
 	re := regexp.MustCompile(pattern)
 	// Find all matches of the pattern in the input string

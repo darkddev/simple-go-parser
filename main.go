@@ -1,17 +1,13 @@
 package main
 
 import (
+	"go-parser/routes"
 	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
-
-type RequestData struct {
-	Url  string `json:"url"`
-	Html string `json:"html"`
-}
 
 func main() {
 	r := gin.Default()
@@ -29,9 +25,9 @@ func main() {
 	})
 
 	// Define a POST route and its handler
-	r.POST("/amazon", Amazon_PostRequest)
-	r.POST("/google", Google_PostRequest)
-	r.POST("/walmart", Walmart_PostRequest)
+	r.POST("/amazon", routes.Amazon_PostRequest)
+	r.POST("/google", routes.Google_PostRequest)
+	r.POST("/walmart", routes.Walmart_PostRequest)
 
 	srv := &http.Server{
 		Addr:           ":8080",

@@ -1,4 +1,4 @@
-package main
+package parsers
 
 import (
 	"encoding/json"
@@ -6,6 +6,10 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+type WRawResult struct {
+	Page string `json:"page"`
+}
 
 type WcData struct {
 	Title              string           `json:"title"`

@@ -1,6 +1,8 @@
-package main
+package routes
 
 import (
+	"go-parser/helper"
+	"go-parser/parsers"
 	"net/http"
 	"os"
 	"strings"
@@ -20,20 +22,20 @@ func Amazon_ParseHtml(filename string) bool {
 		println(err)
 		return false
 	}
-	if Amazon_IsSearchPage(doc) {
-		result := Amazon_SearchPagesScraper(doc)
-		return saveJsonFile(result, filename)
-	} else if Amazon_IsReviewPage(doc) {
-		result := Amazon_ReviewPagesScraper(doc)
-		return saveJsonFile(result, filename)
+	var result interface{}
+	if parsers.Amazon_IsSearchPage(doc) {
+		result = parsers.Amazon_SearchPagesScraper(doc)
+	} else if parsers.Amazon_IsReviewPage(doc) {
+		result = parsers.Amazon_ReviewPagesScraper(doc)
 	} else {
-		result := Amazon_ProductPagesScraper(doc)
-		return saveJsonFile(result, filename)
+		result = parsers.Amazon_ProductPagesScraper(doc)
 	}
+	return helper.SaveJsonFile(result, filename)
+
 }
 
 func Amazon_PostRequest(c *gin.Context) {
-	var postData RequestData
+	var postData helper.RequestData
 	// Get post data
 	if err := c.BindJSON(&postData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -46,13 +48,13 @@ func Amazon_PostRequest(c *gin.Context) {
 		return
 	}
 	var result interface{}
-	if Amazon_IsSearchPage(doc) {
-		result = Amazon_SearchPagesScraper(doc)
-	} else if Amazon_IsReviewPage(doc) {
-		result = Amazon_ReviewPagesScraper(doc)
+	if parsers.Amazon_IsSearchPage(doc) {
+		result = parsers.Amazon_SearchPagesScraper(doc)
+	} else if parsers.Amazon_IsReviewPage(doc) {
+		result = parsers.Amazon_ReviewPagesScraper(doc)
 	} else {
-		result = Amazon_ProductPagesScraper(doc)
+		result = parsers.Amazon_ProductPagesScraper(doc)
 	}
-	// saveJsonFile(result, "result")
+	// SaveJsonFile(result, "result")
 	c.JSON(http.StatusOK, result)
 }

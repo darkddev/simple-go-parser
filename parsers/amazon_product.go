@@ -1,6 +1,7 @@
-package main
+package parsers
 
 import (
+	"go-parser/helper"
 	"strconv"
 	"strings"
 
@@ -42,17 +43,17 @@ func parseBtn(btn *goquery.Selection, first bool) map[string]interface{} {
 	record := make(map[string]interface{})
 	textDiv := btn.Find(".twisterTextDiv").First()
 	if textDiv.Length() > 0 {
-		record["value"] = normalizeText(textDiv.Text())
+		record["value"] = helper.NormalizeText(textDiv.Text())
 	}
 	imageDiv := btn.Find(".twisterImageDiv").First()
 	if imageDiv.Length() > 0 {
 		imgTag := imageDiv.Find("img").First()
-		record["image"] = normalizeImage(imgTag.AttrOr("src", ""))
-		record["value"] = normalizeText(imgTag.AttrOr("alt", ""))
+		record["image"] = helper.NormalizeImage(imgTag.AttrOr("src", ""))
+		record["value"] = helper.NormalizeText(imgTag.AttrOr("alt", ""))
 	}
 	slotDiv := btn.Find(".twisterSlotDiv").First()
 	if slotDiv.Length() > 0 {
-		record["price"] = getPrice(normalizeText(slotDiv.Text()))
+		record["price"] = helper.ExtractPrice(helper.NormalizeText(slotDiv.Text()))
 	}
 	record["is_selected"] = first
 	return record
@@ -66,7 +67,7 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 	href, exists := doc.Find("link[rel='canonical']").Attr("href")
 	if exists {
 		result.URL = href
-		baseUrl = getBaseUrl(href)
+		baseUrl = helper.ExtractBaseUrl(href)
 	}
 	data.ProductInformation = make(map[string]interface{})
 	data.CustomizationOptions = make(map[string]interface{})
@@ -75,18 +76,18 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 	// availability_status
 	availTag := doc.Find("#availability").Find("span").First()
 	if availTag.Length() > 0 {
-		data.AvailabilityStatus = normalizeText(availTag.Text())
+		data.AvailabilityStatus = helper.NormalizeText(availTag.Text())
 	}
 	// avarage_rating, total_reviews
 	reviewTag := doc.Find("#cm_cr_dp_d_rating_histogram").First()
 	if reviewTag.Length() > 0 {
 		averageReviewTag := reviewTag.Find(".AverageCustomerReviews").First()
-		averageReviewText := strings.Split(normalizeText(averageReviewTag.Find("span").First().Text()), " ")[0]
+		averageReviewText := strings.Split(helper.NormalizeText(averageReviewTag.Find("span").First().Text()), " ")[0]
 		rate, err := strconv.ParseFloat(averageReviewText, 64)
 		if err == nil {
 			data.AverageRating = rate
 		}
-		totalReviewsText := normalizeText(reviewTag.Find(".averageStarRatingNumerical").First().Text())
+		totalReviewsText := helper.NormalizeText(reviewTag.Find(".averageStarRatingNumerical").First().Text())
 		totalReviewsText = strings.ReplaceAll(strings.Split(totalReviewsText, " ")[0], ",", "")
 		num, err := strconv.Atoi(totalReviewsText)
 		if err == nil {
@@ -98,15 +99,15 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 	// brand and brand_url
 	brandTag := doc.Find("#bylineInfo").First()
 	if brandTag.Length() > 0 {
-		data.Brand = normalizeText(brandTag.Text())
-		data.BrandURL = normalizeUrl(baseUrl, brandTag.AttrOr("href", ""))
+		data.Brand = helper.NormalizeText(brandTag.Text())
+		data.BrandURL = helper.NormalizeUrl(baseUrl, brandTag.AttrOr("href", ""))
 	}
 	// customization_options
 	twisterTag := doc.Find("#twister").First()
 	if twisterTag.Length() > 0 {
 		twisterTag.ChildrenFiltered("div").Each(func(i int, s *goquery.Selection) {
 			var values []interface{}
-			varrow := normalizeText(s.Find("div.a-row").First().Text())
+			varrow := helper.NormalizeText(s.Find("div.a-row").First().Text())
 			varname := strings.Split(varrow, ":")[0]
 			varvalue := strings.Split(varrow, ":")[1]
 			ulTag := s.Find("ul").First()
@@ -127,26 +128,26 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 
 	// feature_bullets
 	doc.Find("li.a-spacing-mini").Each(func(i int, s *goquery.Selection) {
-		data.FeatureBullets = append(data.FeatureBullets, normalizeText(s.Text()))
+		data.FeatureBullets = append(data.FeatureBullets, helper.NormalizeText(s.Text()))
 	})
 
 	// full_description
 	aplusDesc := doc.Find("#aplus_feature_div").First()
 	if aplusDesc.Length() > 0 {
-		data.FullDescription = extractText(aplusDesc, "\n")
+		data.FullDescription = helper.ExtractText(aplusDesc, "\n")
 	}
 	prodDesc := doc.Find("#productDescription_feature_div").First()
 	if prodDesc.Length() > 0 {
-		data.FullDescription += extractText(prodDesc, "\n")
+		data.FullDescription += helper.ExtractText(prodDesc, "\n")
 	}
 	// name
 	var titleTag = doc.Find("#productTitle").First()
-	data.Name = normalizeText(titleTag.Text())
+	data.Name = helper.NormalizeText(titleTag.Text())
 
 	// price, price_string, price_currency
 	priceTag := doc.Find("#apex_desktop").First()
 	if priceTag.Length() > 0 {
-		priceText := getPrice(extractText(priceTag, " "))
+		priceText := helper.ExtractPrice(helper.ExtractText(priceTag, " "))
 		data.PriceString = priceText
 		if len(priceText) > 0 {
 			price, err := strconv.ParseFloat(priceText[1:], 64)
@@ -166,14 +167,14 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 	// product_category
 	var categoryTag = doc.Find("#wayfinding-breadcrumbs_feature_div").First()
 	categoryTag.Find("span.a-list-item").Each(func(i int, s *goquery.Selection) {
-		data.ProductCategory += normalizeText(s.Text())
+		data.ProductCategory += helper.NormalizeText(s.Text())
 	})
 
 	// product_information
 	detailTag := doc.Find("#prodDetails").First()
 	if detailTag.Length() > 0 {
 		detailTag.Find("table").Each(func(i int, s *goquery.Selection) {
-			detailMap := convertTableToMap(s)
+			detailMap := helper.ConvertTableToMap(s)
 			for key, value := range detailMap {
 				data.ProductInformation[key] = value
 			}
@@ -194,22 +195,22 @@ func Amazon_ProductPagesScraper(doc *goquery.Document) AmazonProductResult {
 	if buyBoxTag.Length() > 0 {
 		corePriceTag := buyBoxTag.Find("#corePrice_feature_div").Find("span.a-offscreen").First()
 		if corePriceTag.Length() > 0 {
-			data.ShippingPrice = normalizeText(corePriceTag.Text())
+			data.ShippingPrice = helper.NormalizeText(corePriceTag.Text())
 		}
 		fulfillerTag := buyBoxTag.Find("#fulfillerInfoFeature_feature_div").Find(".offer-display-feature-text").First()
 		if fulfillerTag.Length() > 0 {
-			data.ShipsFrom = normalizeText(fulfillerTag.Text())
+			data.ShipsFrom = helper.NormalizeText(fulfillerTag.Text())
 		}
 		merchantTag := buyBoxTag.Find("#merchantInfoFeature_feature_div").Find(".offer-display-feature-text").First()
 		if fulfillerTag.Length() > 0 {
-			data.SoldBy = normalizeText(merchantTag.Text())
+			data.SoldBy = helper.NormalizeText(merchantTag.Text())
 		}
 	}
 	// images
 	imageTag := doc.Find("#altImages").First()
 	if imageTag.Length() > 0 {
 		imageTag.Find("img").Each(func(i int, s *goquery.Selection) {
-			imageUrl := normalizeImage(s.AttrOr("src", ""))
+			imageUrl := helper.NormalizeImage(s.AttrOr("src", ""))
 			if imageUrl != "" {
 				data.Images = append(data.Images, imageUrl)
 			}
